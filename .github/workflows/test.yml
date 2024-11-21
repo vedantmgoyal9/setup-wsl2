@@ -1,0 +1,24 @@
+name: Test
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '30 05 * * 0'
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: ./
+      - name: Run a one-line script
+        run: cat /etc/os-release && uname -a
+        shell: wsl-run {0}
+      - name: Run a multi-line script
+        run: |
+          ls -alh
+          cat ${0} # prints the script itself
+          echo "Hello, world!"
+          echo "Bye, world!"
+        shell: wsl-run {0}

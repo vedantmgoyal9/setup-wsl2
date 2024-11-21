@@ -1,0 +1,85 @@
+name: Setup WSL2
+description: Setup WSL2 in GitHub-hosted runners
+author: Vedant Mohan Goyal
+branding:
+  icon: terminal
+  color: blue
+inputs:
+  distro:
+    description: Linux distro to install. Default is Ubuntu.
+    required: false
+    default: Ubuntu
+  enable-systemd:
+    description: |
+      Enable systemd support. Default is true.
+      Note: Please disable this if you are using Windows Server 2019 GitHub-hosted runners.
+    required: true
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - if: runner.os != 'Windows'
+      run: |
+        echo "This action is only supported on Windows runners"
+        exit 1
+      shell: bash
+    - if: inputs.enable-systemd == 'true'
+      run: |
+        # check if systemd is supported
+        if ((Get-ComputerInfo -Property OsName).OsName.Contains('2019')) {
+          Write-Output 'systemd is not supported on windows server 2019'
+          exit 1
+        }
+      shell: pwsh
+    - run: |
+        # update WSL, download & install ${{ inputs.distro }}
+        Set-Service -Name StorSvc -StartupType Automatic
+        wsl --set-default-version 2; wsl --update; wsl --status;
+        $distros = (Invoke-RestMethod -Uri https://raw.githubusercontent.com/microsoft/WSL/refs/heads/master/distributions/DistributionInfo.json).Distributions
+        if ($distros.Name -notcontains '${{ inputs.distro }}') {
+          Write-Output 'Invalid distro: ${{ inputs.distro }}'
+          Write-Output 'The value should be one of the following:'
+          wsl --list --online
+          exit 1
+        }
+        # github runner does support windows arm64 runners, so we don't need to check the architecture
+        $distroDownloadUrl = $distros.Where({ $_.Name -eq '${{ inputs.distro }}' }).Amd64PackageUrl
+        Set-Location $env:GITHUB_WORKSPACE\..\.. # don't download in $env:GITHUB_WORKSPACE
+        $filename = "${{ inputs.distro }}$([System.IO.Path]::GetExtension($distroDownloadUrl))"
+        Write-Output 'Downloading and installing the distro...'
+        Invoke-WebRequest -Uri $distroDownloadUrl -OutFile $filename
+        if ($filename.EndsWith('.appxbundle', [System.StringComparison]::OrdinalIgnoreCase)) {
+          Expand-Archive -Path $filename -DestinationPath .\AppxBundle
+          Remove-Item -Path $filename -Force # cleanup so we don't fill up the disk unnecessarily
+          $filename = (Get-ChildItem -Path .\AppxBundle -Filter *x64*).FullName
+        }
+        Expand-Archive -Path $filename -DestinationPath .\
+        Remove-Item -Path .\AppxBundle -Recurse -Force -ErrorAction SilentlyContinue # cleanup
+        # exclude the extra splash and setup exe files that come with "ubuntu" and "ubuntu-22.04" distros
+        $distroExe = (Get-ChildItem -Path . -Filter *.exe).Where({ $_.Name -notmatch 'splash|setup' }).FullName
+        & $distroExe install --root
+        if ('${{ inputs.enable-systemd }}' -eq 'true') {
+          Write-Output 'Enabling systemd support...'
+          @'
+        [boot]
+        systemd=true
+        '@ | Out-File -FilePath .\wsl.conf -Encoding utf8
+          wsl --distribution ${{ inputs.distro }} --cd $(Get-Location) cp wsl.conf /etc/wsl.conf
+          Write-Output 'Restarting WSL...'
+          wsl --shutdown
+          # https://learn.microsoft.com/en-us/windows/wsl/wsl-config#the-8-second-rule-for-configuration-changes
+          # although the documentation says 8 seconds, we wait for 10 seconds to be safe
+          Start-Sleep -Seconds 10
+        }
+        Write-Output 'Running command to test the installation...'
+        Write-Output '-> cat /etc/os-release'
+        wsl --distribution ${{ inputs.distro }} cat /etc/os-release # print the distro info
+        # add a wrapper script to run commands inside wsl easily using run.shell in github workflows
+        @'
+        @echo off
+        FOR /F "usebackq tokens=*" %%F IN (`wsl wslpath '%~1'`) DO SET wslpath=%%F
+        wsl -d ${{ inputs.distro }} sed -i 's/\r$//' %wslpath%
+        wsl -d ${{ inputs.distro }} --cd %GITHUB_WORKSPACE% bash --noprofile --norc -eo pipefail %wslpath%
+        '@ | Out-File -FilePath $env:RUNNER_TEMP\wsl-run.bat -Encoding utf8
+        $env:RUNNER_TEMP >> $env:GITHUB_PATH
+      shell: pwsh

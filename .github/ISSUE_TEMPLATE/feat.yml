@@ -1,7 +1,7 @@
 name: 'Feature Request'
 description: Request a new feature
 title: '[Feature/Idea]: '
-labels: [feat]
+labels: [enhancement]
 assignees: vedantmgoyal9
 body:
   - type: markdown

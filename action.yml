@@ -7,7 +7,7 @@ branding:
 inputs:
   distro:
     description: Linux distro to install. Default is Ubuntu.
-    required: false
+    required: true
     default: Ubuntu
   enable-systemd:
     description: |

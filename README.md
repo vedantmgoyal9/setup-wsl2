@@ -8,10 +8,10 @@ It also enables systemd support if you are using `windows-2022`/`windows-latest`
 
 ### Inputs
 
-| Input            | Description                                                                                      | Default  |
-| ---------------- | ------------------------------------------------------------------------------------------------ | -------- |
-| `distro`         | The Linux distro to install. You can use any distro which is available in `wsl --list --online`. | `Ubuntu` |
-| `enable-systemd` | Enable systemd.<br>**Note:** Please set it to `false` if you are using `windows-2019` runner.                 | `true`   |
+| Input            | Description                                                                                                                                             | Default  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `distro`         | The Linux distro to install. You can use any distro which is available in `wsl --list --online`.<br>**Note:** Use `none` to skip installing any distro. | `Ubuntu` |
+| `enable-systemd` | Enable systemd.<br>**Note:** Please set it to `false` if you are using `windows-2019` runner.                                                           | `true`   |
 
 ### Example Usage
 

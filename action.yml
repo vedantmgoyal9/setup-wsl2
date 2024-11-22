@@ -12,7 +12,7 @@ inputs:
   enable-systemd:
     description: |
       Enable systemd support. Default is true.
-      Note: Please disable this if you are using Windows Server 2019 GitHub-hosted runners.
+      Note: Please disable this if you are using `windows-2019` runner.
     required: true
     default: 'true'
 runs:
@@ -27,7 +27,7 @@ runs:
       run: |
         # check if systemd is supported
         if ((Get-ComputerInfo -Property OsName).OsName.Contains('2019')) {
-          Write-Output 'systemd is not supported on windows server 2019'
+          Write-Output 'systemd is not supported on windows-2019 runners.'
           exit 1
         }
       shell: pwsh
@@ -35,6 +35,10 @@ runs:
         # update WSL, download & install ${{ inputs.distro }}
         Set-Service -Name StorSvc -StartupType Automatic
         wsl --set-default-version 2; wsl --update; wsl --status;
+        if ('${{ inputs.distro }}' -eq 'none') {
+          Write-Output 'Skipping distro installation...'
+          return
+        }
         $distros = (Invoke-RestMethod -Uri https://raw.githubusercontent.com/microsoft/WSL/refs/heads/master/distributions/DistributionInfo.json).Distributions
         if ($distros.Name -notcontains '${{ inputs.distro }}') {
           Write-Output 'Invalid distro: ${{ inputs.distro }}'

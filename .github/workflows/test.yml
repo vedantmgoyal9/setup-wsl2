@@ -15,13 +15,19 @@ on:
 jobs:
   test:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        distro: [Ubuntu, none]
     steps:
       - uses: actions/checkout@v4.1.1
       - uses: ./
-      - name: Run a one-line script
+        with:
+          distro: ${{ matrix.distro }}
+      - if: ${{ matrix.distro != 'none' }}
         run: cat /etc/os-release && uname -a
         shell: wsl-run {0}
-      - name: Run a multi-line script
+      - if: ${{ matrix.distro != 'none' }}
+        name: Run a multi-line script
         run: |
           ls -alh
           cat ${0} # prints the script itself

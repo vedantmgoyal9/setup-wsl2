@@ -23,7 +23,7 @@ runs:
         echo "This action is only supported on Windows runners"
         exit 1
       shell: bash
-    - if: inputs.enable-systemd == 'true'
+    - if: inputs.enable-systemd == 'true' && inputs.distro != 'none'
       run: |
         # check if systemd is supported
         if ((Get-ComputerInfo -Property OsName).OsName.Contains('2019')) {

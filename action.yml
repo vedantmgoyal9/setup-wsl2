@@ -1,5 +1,5 @@
 name: Setup WSL2
-description: Setup WSL2 in GitHub-hosted runners
+description: Enable WSL2 and install a Linux distro in GitHub-hosted runners.
 author: Vedant Mohan Goyal
 branding:
   icon: terminal

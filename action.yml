@@ -33,7 +33,6 @@ runs:
       shell: pwsh
     - run: |
         # update WSL, download & install ${{ inputs.distro }}
-        Set-Service -Name StorSvc -StartupType Automatic
         wsl --set-default-version 2; wsl --update; wsl --status;
         if ('${{ inputs.distro }}' -eq 'none') {
           Write-Output 'Skipping distro installation...'

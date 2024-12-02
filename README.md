@@ -6,13 +6,6 @@ GitHub-hosted Windows runners come with WSL 1 by default. This action upgrades t
 
 It also enables systemd support if you are using `windows-2022`/`windows-latest` runner. See https://learn.microsoft.com/windows/wsl/systemd.
 
-### Inputs
-
-| Input            | Description                                                                                                                                             | Default  |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `distro`         | The Linux distro to install. You can use any distro which is available in `wsl --list --online`.<br>**Note:** Use `none` to skip installing any distro. | `Ubuntu` |
-| `enable-systemd` | Enable systemd.<br>**Note:** Please set it to `false` if you are using `windows-2019` runner.                                                           | `true`   |
-
 ### Example Usage
 
 ```yaml
@@ -28,10 +21,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: vedantmgoyal9/setup-wsl2@main
       - run: apt update && apt upgrade -y
-        # add this line to run the commands inside linux
-        shell: wsl-run {0}
+        shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
           ls -al
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+          env
         shell: wsl-run {0} # don't forget to add this
+        env:
+          MY_ENV_VAR: MY_VALUE
+          # WSLENV is a special environment variable to share environment variables between windows and linux
+          # see https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows
+          WSLENV: MY_ENV_VAR
 ```
+
+### Inputs
+
+| Input            | Description                                                                                                                                             | Default  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `distro`         | The Linux distro to install. You can use any distro which is available in `wsl --list --online`.<br>**Note:** Use `none` to skip installing any distro. | `Ubuntu` |
+| `enable-systemd` | Enable systemd.<br>**Note:** Please set it to `false` if you are using `windows-2019` runner.                                                           | `true`   |

@@ -63,7 +63,11 @@ runs:
         & $distroExe install --root
         if ('${{ inputs.enable-systemd }}' -eq 'true') {
           Write-Output 'Enabling systemd support...'
-          wsl --distribution ${{ inputs.distro }} bash -c "echo -e '[boot]\nsystemd=true' > /etc/wsl.conf"
+          $systemdCmd = switch ('${{ inputs.distro }}') {
+            'openSUSE-Tumbleweed' { 'zypper in -yt pattern wsl_systemd'.Split(' ') }
+            Default { @('bash', '-c', "echo -e '[boot]\nsystemd=true' > /etc/wsl.conf") }
+          }
+          wsl --distribution ${{ inputs.distro }} $systemdCmd
           Write-Output 'Restarting WSL...'
           wsl --shutdown
           # https://learn.microsoft.com/en-us/windows/wsl/wsl-config#the-8-second-rule-for-configuration-changes

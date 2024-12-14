@@ -33,11 +33,13 @@ jobs:
           - SUSE-Linux-Enterprise-15-SP5
           - SUSE-Linux-Enterprise-15-SP6
           - openSUSE-Tumbleweed
+        enable-systemd: [true, false]
     steps:
       - uses: actions/checkout@v4.1.1
       - uses: ./
         with:
           distro: ${{ matrix.distro }}
+          enable-systemd: ${{ matrix.enable-systemd }}
       - if: ${{ matrix.distro != 'none' }}
         run: cat /etc/os-release && uname -a
         shell: wsl-run {0}

@@ -63,11 +63,7 @@ runs:
         & $distroExe install --root
         if ('${{ inputs.enable-systemd }}' -eq 'true') {
           Write-Output 'Enabling systemd support...'
-          @'
-        [boot]
-        systemd=true
-        '@ | Out-File -FilePath .\wsl.conf -Encoding utf8
-          wsl --distribution ${{ inputs.distro }} --cd $(Get-Location) cp wsl.conf /etc/wsl.conf
+          wsl --distribution ${{ inputs.distro }} bash -c "echo -e '[boot]\nsystemd=true' > /etc/wsl.conf"
           Write-Output 'Restarting WSL...'
           wsl --shutdown
           # https://learn.microsoft.com/en-us/windows/wsl/wsl-config#the-8-second-rule-for-configuration-changes
@@ -75,8 +71,9 @@ runs:
           Start-Sleep -Seconds 10
         }
         Write-Output 'Running command to test the installation...'
-        Write-Output '-> cat /etc/os-release'
-        wsl --distribution ${{ inputs.distro }} cat /etc/os-release # print the distro info
+        $testCmd = ('${{ inputs.enable-systemd }}' -eq 'true' ? 'sudo systemctl status' : 'cat /etc/os-release').Split(' ')
+        Write-Output "-> $testCmd"
+        wsl --distribution ${{ inputs.distro }} $testCmd # print the distro info
         # add a wrapper script to run commands inside wsl easily using run.shell in github workflows
         @'
         @echo off

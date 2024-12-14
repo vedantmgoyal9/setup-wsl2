@@ -69,7 +69,7 @@ runs:
           }
           wsl --distribution ${{ inputs.distro }} $systemdCmd
           Write-Output 'Restarting WSL...'
-          wsl --shutdown
+          wsl --terminate ${{ inputs.distro }}
           # https://learn.microsoft.com/en-us/windows/wsl/wsl-config#the-8-second-rule-for-configuration-changes
           # although the documentation says 8 seconds, we wait for 10 seconds to be safe
           Start-Sleep -Seconds 10

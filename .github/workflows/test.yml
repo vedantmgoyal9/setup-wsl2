@@ -15,6 +15,7 @@ jobs:
   test:
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         distro:
           - none # only enable wsl2 and don't install a distro

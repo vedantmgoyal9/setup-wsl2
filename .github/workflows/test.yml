@@ -33,7 +33,7 @@ jobs:
           - SUSE-Linux-Enterprise-15-SP6
           - openSUSE-Tumbleweed
     steps:
-      - uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4.2.2
       - uses: ./
         with:
           distro: ${{ matrix.distro }}
